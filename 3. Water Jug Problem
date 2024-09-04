@@ -1,0 +1,84 @@
+from collections import deque
+
+
+def is_goal(state, target):
+    return state[0] == target or state[1] == target
+
+
+def get_possible_moves(jug1, jug2, state):
+    (a, b) = state
+    moves = []
+
+    # Fill jug1
+    moves.append((jug1, b))
+
+    # Fill jug2
+    moves.append((a, jug2))
+
+    # Empty jug1
+    moves.append((0, b))
+
+    # Empty jug2
+    moves.append((a, 0))
+
+    # Pour water from jug1 to jug2
+    pour_to_jug2 = min(a, jug2 - b)
+    moves.append((a - pour_to_jug2, b + pour_to_jug2))
+
+    # Pour water from jug2 to jug1
+    pour_to_jug1 = min(b, jug1 - a)
+    moves.append((a + pour_to_jug1, b - pour_to_jug1))
+
+    return moves
+
+
+def bfs_solve(jug1, jug2, target):
+    visited = set()
+    queue = deque([(0, 0)])
+    parent_map = {}
+
+    while queue:
+        current_state = queue.popleft()
+        if current_state in visited:
+            continue
+
+        visited.add(current_state)
+
+        if is_goal(current_state, target):
+            return get_solution_path(current_state, parent_map)
+
+        for move in get_possible_moves(jug1, jug2, current_state):
+            if move not in visited:
+                parent_map[move] = current_state
+                queue.append(move)
+
+    return None
+
+
+def get_solution_path(state, parent_map):
+    path = []
+    while state:
+        path.append(state)
+        state = parent_map.get(state)
+    path.reverse()
+    return path
+
+
+def print_solution(path):
+    for state in path:
+        print(f"Jug1: {state[0]}L, Jug2: {state[1]}L")
+    print()
+
+
+if __name__ == "__main__":
+    jug1_capacity = 4
+    jug2_capacity = 3
+    target_amount = 2
+
+    solution = bfs_solve(jug1_capacity, jug2_capacity, target_amount)
+
+    if solution:
+        print("Solution found:")
+        print_solution(solution)
+    else:
+        print("No solution exists.")
